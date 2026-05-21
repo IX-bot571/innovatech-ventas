@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  back-ventas-standalone:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api_ventas_autonoma
+    ports:
+      - "8081:8080" # Expone la API en el puerto 8081 del host
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-ventas-standalone:3306/ventas_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=innovatech_user
+      - SPRING_DATASOURCE_PASSWORD=pass_segura_2026
+    depends_on:
+      db-ventas-standalone:
+        condition: service_healthy
+    networks:
+      - red_ventas_aislada
+
+  db-ventas-standalone:
+    image: mysql:8.0
+    container_name: db_ventas_autonoma
+    environment:
+      MYSQL_DATABASE: ventas_db
+      MYSQL_USER: innovatech_user
+      MYSQL_PASSWORD: pass_segura_2026
+      MYSQL_ROOT_PASSWORD: root_secure_pass
+    volumes:
+      - data_ventas_autonoma:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    networks:
+      - red_ventas_aislada
+
+networks:
+  red_ventas_aislada:
+
+volumes:
+  data_ventas_autonoma:
